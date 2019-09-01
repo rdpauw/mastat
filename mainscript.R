@@ -296,7 +296,7 @@ for (m in sim_models) {
         n_temp <- data.frame(type = NA, n = NA)
       
         # Resample training dataset
-        id <- createDataPartition(painfilter$outcome, p = 3/4, list = FALSE)
+        id <- createDataPartition(painfilter$outcome, p = 2/3, list = FALSE)
         pain.train <- painfilter[id,]
         pain.test <- painfilter[-id,]
 
