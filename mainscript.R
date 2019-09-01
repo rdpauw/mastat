@@ -143,7 +143,7 @@ painfilter[,id] <- sapply(painfilter[,id], scale)
 # SPLIT THE DATASET ####
 # Split data set into training and test set
 set.seed(666)
-id <- createDataPartition(painfilter$outcome, p = 1/3, list = FALSE)
+id <- createDataPartition(painfilter$outcome, p = 2/3, list = FALSE)
 
 pain.train <- painfilter[id,]
 pain.test <- painfilter[-id,]
