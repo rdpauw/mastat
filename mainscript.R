@@ -13,8 +13,6 @@
 library(tidyverse)
 #install.packages('DMwR', lib = "C:/Users/rdpauw/R_library")
 library(DMwR)
-#install.packages('fastDummies', lib = "C:/Users/rdpauw/R_library")
-library(fastDummies)
 #install.packages('ipred', lib = "C:/Users/rdpauw/R_library")
 library(ipred)
 #install.packages('caret', lib = "C:/Users/rdpauw/R_library")
@@ -29,8 +27,6 @@ library(ggplot2)
 library(xtable)
 #install.packages("vcd", lib = "C:/Users/rdpauw/R_library")
 library(vcd)
-#install.packages("mice", lib = "C:/Users/rdpauw/R_library")
-library(mice)
 #install.packages("VIM", lib = "C:/Users/rdpauw/R_library")
 library(VIM)
 #install.packages("corrplot", lib = "C:/Users/rdpauw/R_library")
@@ -40,9 +36,9 @@ library(glmnet)
 library(C50)
 #install.packages("stabm", lib = "C:/Users/rdpauw/R_library")
 library(stabm)
-
-#source("http://bioconductor.org/biocLite.R")
-#biocLite("OmicsMarkeR", lib = "C:/Users/rdpauw/R_library")
+#install.packages("BiocManager")
+library(BiocManager)
+#install("OmicsMarkeR")
 library(OmicsMarkeR)
 
 ###
@@ -190,7 +186,7 @@ for (s in c("none","rose","smote")) {
                            repeats = 100, returnResamp="all",
                            classProbs = TRUE,
                            summaryFunction = twoClassSummary,
-                           sampling = c)    
+                           sampling = s)    
   }
 
   ## GLMNET
@@ -221,7 +217,7 @@ for (s in c("none","rose","smote")) {
 
   assign(x = paste0("model_C5.0Tree_",s), model_C5.0Tree)
     
-  print(paste(c,"is finished!"))
+  print(paste(s,"is finished!"))
   
   }
 
@@ -449,36 +445,38 @@ for (m in sim_models){
 ## PERFORMANCE
 
 #GLMNET
-summaryresults(glmnet_res, "glmnet.csv") # Create a summary of the results
-
 glmnet_res[,-1] <- sapply(glmnet_res[,-1], function(x) as.numeric(as.character(x)))
 glmnet_res$AUC <- (glmnet_res$sens + glmnet_res$spec)/2
-glmnet_res$type <- factor(glmnet_res$type)
+glmnet_res$type <- fct_explicit_na(glmnet_res$type)
+
+summaryresults(glmnet_res, "glmnet.csv") # Create a summary of the results
 
 glmnet.plot <- gather(glmnet_res[,-c(2,5:8)], "meas", "value", 2:4) # Create a dataframe for later plotting
 
 #RF
-summaryresults(rf_res, "rf.csv")
-
 rf_res[,-1] <- sapply(rf_res[,-1], function(x) as.numeric(as.character(x)))
 rf_res$AUC <- (rf_res$sens + rf_res$spec)/2
-rf_res$type <- factor(rf_res$type)
+rf_res$type <- fct_explicit_na(rf_res$type)
+
+summaryresults(rf_res, "rf.csv")
 
 rf.plot <- gather(rf_res[,-c(2,5:8)], "meas", "value", 2:4)
 
 #sLDA
-summaryresults(sparseLDA_res, "sLDA.csv")
 sparseLDA_res[,-1] <- sapply(sparseLDA_res[,-1], function(x) as.numeric(as.character(x)))
 sparseLDA_res$AUC <- (sparseLDA_res$sens + sparseLDA_res$spec)/2
-sparseLDA_res$type <- factor(sparseLDA_res$type)
+sparseLDA_res$type <- fct_explicit_na(sparseLDA_res$type)
+
+summaryresults(sparseLDA_res, "sLDA.csv")
 
 sparseLDA.plot <- gather(sparseLDA_res[,-c(2,5:8)], "meas", "value", 2:4)
 
 #C5.0
-summaryresults(C5.0Tree_res, "c50.csv")
 C5.0Tree_res[,-1] <- sapply(C5.0Tree_res[,-1], function(x) as.numeric(as.character(x)))
 C5.0Tree_res$AUC <- (C5.0Tree_res$sens + C5.0Tree_res$spec)/2
-C5.0Tree_res$type <- factor(C5.0Tree_res$type)
+C5.0Tree_res$type <- fct_explicit_na(C5.0Tree_res$type)
+
+summaryresults(C5.0Tree_res, "c50.csv")
 
 C50.plot <- gather(C5.0Tree_res[,-c(2,5:8)], "meas", "value", 2:4)
 
@@ -588,11 +586,6 @@ tab <- n_features %>%
   summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE), ~median(., na.rm = TRUE), ~min(., na.rm = TRUE), ~max(., na.rm = TRUE)), na.rm = TRUE)
 write.csv2(tab, "nfeat.csv")
 
-ggplot(glmnet_nfeatures, aes(x = n)) +
-  stat_count(aes(color = type), fill = "white",
-             position = "identity") +
-  scale_color_manual(values = c("#1E64C8", "#2D8CA8", "#FFD200")) 
-
 # Similar boxplot for nfeat
 
 n_features_long <- gather(n_features, "model", "value", 2:5)
@@ -632,7 +625,6 @@ colnames(testX)[c(68, 48, 69, 34,47)]
 ## Most often in top 10
 tab <- rowSums(sel_feat)
 barplot(tab[order(tab, decreasing = T)], las = 2, horiz=FALSE, cex.names=0.6)
-
 
 ## RF
 
